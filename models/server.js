@@ -8,7 +8,7 @@ class Server {
         this.port = process.env.PORT;
         this.usersPath = {
             auth: '/api/auth',
-            users: '/api/users',
+            items: '/api/items',
             
         }
 
@@ -40,6 +40,7 @@ class Server {
 
     routes() {
         this.app.use(this.usersPath.auth, require('../routes/auth'));
+        this.app.use(this.usersPath.items, require('../routes/items'));
     }
 
     listen() {
