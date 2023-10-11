@@ -5,9 +5,13 @@ const UserSchema = Schema({
         type: String,
         required: [true, 'El nombre es obligatorio']
     },
+    lastname: {
+        type: String,
+        required: [true, 'El apellido es obligatorio']
+    },
     phone: {
         type: String,
-        required: [true, 'El email es obligatorio'],
+        required: [true, 'El telefono es obligatorio'],
         unique: true
     },
     password: {
@@ -18,6 +22,14 @@ const UserSchema = Schema({
         type: String,
         required: [true, 'El genero es obligatorio']
     },
+    status: {
+        type: Boolean,
+        default: false
+    },
+    opt: {
+        type: Number,
+        default: 0
+    },
 },
 {
     timestamps: true,
@@ -25,8 +37,8 @@ const UserSchema = Schema({
 });
 
 UserSchema.methods.toJSON = function() {
-    const { __v, password, ...user } = this.toObject();
-    usuario.id = _id;
+    const { __v, password, _id, ...user } = this.toObject();
+    user.id = _id;
     return user;
 };
 

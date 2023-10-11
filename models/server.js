@@ -9,6 +9,7 @@ class Server {
         this.usersPath = {
             auth: '/api/auth',
             users: '/api/users',
+            
         }
 
         // conectar a la base de datos

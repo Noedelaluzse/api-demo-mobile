@@ -4,7 +4,7 @@ const tokenSign = (uid) => {
     return new Promise( (resolve, reject) => {
         const payload = { uid };
 
-        jwt.sign(payload, process.env.SECRETORPRIVATEKEY,{
+        jwt.sign(payload, process.env.JWT_SECRET,{
             expiresIn: '4h'
         }, (err, token) => {
             if(err){

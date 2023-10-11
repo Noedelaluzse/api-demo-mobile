@@ -16,7 +16,20 @@ const validatorLogin = [
     validateResults
 ];
 
+const optValidator = [
+    check('phone', 'El email es obligatorio').isMobilePhone(),
+    validateResults
+];
+
+const confirmationValidator = [
+    check('phone', 'El telefono es obligatorio').isMobilePhone(),
+    check('opt', 'El codigo es obligatorio').not().isEmpty(),
+    validateResults
+];   
+
 module.exports = {
     validatorRegister,
-    validatorLogin
+    validatorLogin,
+    optValidator,
+    confirmationValidator
 }

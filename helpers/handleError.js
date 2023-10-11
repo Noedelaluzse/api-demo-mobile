@@ -1,6 +1,6 @@
-const handleError = (res, message = "Algo sucedio", code = 403) => {
+const handleError = (res, message = {msg: "Algo sucedio"}, code = 403) => {
     res.status(code);
-    res.send({message});
+    return res.send(message);
 }
 
 module.exports = handleError;

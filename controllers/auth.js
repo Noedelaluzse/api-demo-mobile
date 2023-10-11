@@ -9,24 +9,132 @@ const register = async(req, res) => {
 
         req = matchedData(req);
         const password = await encrypt(req.password);
-        const body = {...req, password};
+        const opt = Math.floor(1000 + Math.random() * 9000);
+        const body = {...req, password, opt};
         const dataUser = await User.create(body);
-        
-        dataUser.set({password: undefined}, {strict: false}); // Elimina el campo password del objeto
 
         const data = {
             ok: true,
             user: dataUser,
-            token: tokenSign(dataUser.id),
+            sms: opt
         }
 
-        res.send({data});
+        res.status(201).send(data);
 
      } catch (error) {
-        handleHttpError(res, 'ERROR_REGISTER_USER', 400);
+        handleHttpError(res, {msg:'ERROR_REGISTER_USER', ok: false}, 400);
      }
 };
 
+const login = async(req, res) => {
+
+    try {
+        
+        const user = await User.findOne({phone: req.body.phone});        
+        
+        if(!user) {
+            return handleHttpError(res, {msg: 'No existe el usuario', ok: false}, 400);
+        }
+
+        if (!user.status) {
+            return res.status(400).send({
+                ok: false,
+                message: 'Usuario sin confirmar',
+            });
+        }
+
+        const hashPassword = user.get('password'); // Obtiene el password del usuario
+        const checkPassword = await compare(req.body.password, hashPassword); // Compara el password ingresado con el password del usuario
+        
+        if(!checkPassword) {
+            return handleHttpError(res, {msg: 'Error al validar credenciales', ok:false }, 400);
+        }
+
+        user.set({password: undefined}, {strict: false}); // Elimina el campo password del objeto
+        const data = {
+            ok: true,
+            user,
+            token: await tokenSign(user.id),
+        }
+        res.status(200).send(data);
+
+    } catch(error) {
+        console.log(error);
+        handleHttpError(res, { msg: 'ERROR_LOGIN_USER', ok: false }, 400);
+    }
+};
+
+const opt = async(req, res) => {
+
+    try {
+
+        const { phone } = req.body;
+
+        const user = await User.findOne({phone});
+
+        if (!user) {
+            return handleHttpError(res, {msg: 'Usuario no encontrado', ok:false }, 400);
+        }
+
+        const opt = Math.floor(1000 + Math.random() * 9000)
+
+        await User.findOneAndUpdate({phone}, {opt});
+
+        const data = {
+            ok: true,
+            opt
+        }
+        res.status(200).send(data);
+    } catch(error) {
+        handleHttpError(res, { msg: 'ERROR_OPT_USER', ok: false }, 400);
+    }
+
+};
+
+const confirmation = async(req, res) => {
+
+    try {
+
+        const { opt, phone } = req.body;
+
+        const user = await User.findOne({phone});
+
+        if (!user) {
+            return handleHttpError(res, {msg: 'Usuario no encontrado', ok:false }, 400);
+        }
+
+        if (user.opt !== opt) {
+            return handleHttpError(res, {msg: 'Codigo de verificacion incorrecto', ok:false }, 400);
+        }
+
+        let data = {};
+        if (!user.status) {
+            await User.findOneAndUpdate({phone}, {status: true, opt: 0});
+            data = {
+                ok: true,
+                message: 'Usuario confirmado',
+                token: await tokenSign(user.id),
+            }
+           
+        } else {
+            data = {
+                ok: true,
+                message: 'Usuario ya confirmado',
+                token: await tokenSign(user.id),
+            }
+        }
+
+        res.status(200).send(data);
+
+
+    } catch(error) {
+        handleHttpError(res, { msg: 'ERROR_CONFIRMATION_USER', ok: false }, 400);
+    }
+}
+
 module.exports = {
-    register
+    register,
+    login,
+    opt,
+    confirmation
 };
