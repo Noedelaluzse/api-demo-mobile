@@ -7,24 +7,24 @@ const validatorRegister = [
     check('phone', 'El email es obligatorio').isMobilePhone(),
     check('password', 'La contraseña es obligatoria').not().isEmpty(),
     check('gender', 'El email es obligatorio').not().isEmpty(),
-    validateResults
+    (req, res, next) => validateResults(req, res, next),
 ];
 
 const validatorLogin = [
     check('phone', 'El email es obligatorio').isMobilePhone(),
     check('password', 'La contraseña es obligatoria').not().isEmpty(),
-    validateResults
+    (req, res, next) => validateResults(req, res, next),
 ];
 
 const optValidator = [
     check('phone', 'El email es obligatorio').isMobilePhone(),
-    validateResults
+    (req, res, next) => validateResults(req, res, next),
 ];
 
 const confirmationValidator = [
     check('phone', 'El telefono es obligatorio').isMobilePhone(),
     check('opt', 'El codigo es obligatorio').not().isEmpty(),
-    validateResults
+    (req, res, next) => validateResults(req, res, next),
 ];   
 
 module.exports = {
