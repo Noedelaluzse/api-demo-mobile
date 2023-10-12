@@ -2,6 +2,8 @@ const { matchedData } = require('express-validator')
 const { encrypt, compare } = require('../helpers/handlePassword')
 const { tokenSign } = require('../helpers/handleJwt')
 const handleHttpError = require('../helpers/handleError');
+const { sendVerificationSMS, verifySmsTwilio} = require('../utils/smsTwilio');
+
 const User = require('../models/user');
 
 const register = async(req, res) => {
@@ -9,14 +11,18 @@ const register = async(req, res) => {
 
         req = matchedData(req);
         const password = await encrypt(req.password);
-        const opt = Math.floor(1000 + Math.random() * 9000);
+        // const opt = Math.floor(1000 + Math.random() * 9000);
+        const opt = 1234;
         const body = {...req, password, opt};
         const dataUser = await User.create(body);
+
+        const status = await sendVerificationSMS(dataUser.phone);
+        console.log(status);
 
         const data = {
             ok: true,
             user: dataUser,
-            sms: opt
+            status
         }
 
         res.status(201).send(data);
@@ -95,25 +101,28 @@ const confirmation = async(req, res) => {
 
     try {
 
-        const { opt, phone } = req.body;
-
         const user = await User.findOne({phone});
 
         if (!user) {
             return handleHttpError(res, {msg: 'Usuario no encontrado', ok:false }, 400);
         }
 
-        if (user.opt !== opt) {
-            return handleHttpError(res, {msg: 'Codigo de verificacion incorrecto', ok:false }, 400);
-        }
-
         let data = {};
         if (!user.status) {
+            
+            const status = await verifySmsTwilio(phone, code.toString());
+
+            if (status !== 'approved') {
+                return handleHttpError(res, {msg: 'Codigo incorrecto', ok:false }, 400);
+            } 
+
             await User.findOneAndUpdate({phone}, {status: true, opt: 0});
+            
             data = {
                 ok: true,
                 message: 'Usuario confirmado',
                 token: await tokenSign(user.id),
+                status
             }
            
         } else {
