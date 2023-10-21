@@ -16,13 +16,9 @@ const register = async(req, res) => {
         const body = {...req, password, opt};
         const dataUser = await User.create(body);
 
-        const status = await sendVerificationSMS(dataUser.phone);
-        console.log(status);
-
         const data = {
             ok: true,
-            user: dataUser,
-            status
+            user: dataUser
         }
 
         res.status(201).send(data);
@@ -73,22 +69,22 @@ const login = async(req, res) => {
 const opt = async(req, res) => {
 
     try {
-
         const { phone } = req.body;
-
-        const user = await User.findOne({phone});
+        const user = await User.findOne({phone: req.body.phone}); 
 
         if (!user) {
             return handleHttpError(res, {msg: 'Usuario no encontrado', ok:false }, 400);
         }
 
-        const opt = Math.floor(1000 + Math.random() * 9000)
+        if (user.status) {
+            return handleHttpError(res, {msg: 'Usuario ya confirmado', ok:false }, 400);
+        }
 
-        await User.findOneAndUpdate({phone}, {opt});
+        const status = await sendVerificationSMS(phone);
 
         const data = {
             ok: true,
-            opt
+            status
         }
         res.status(200).send(data);
     } catch(error) {
@@ -100,7 +96,7 @@ const opt = async(req, res) => {
 const confirmation = async(req, res) => {
 
     try {
-
+        const {phone, code} = req.body;
         const user = await User.findOne({phone});
 
         if (!user) {

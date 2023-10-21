@@ -17,9 +17,7 @@ const sendVerificationSMS = async (phone) => {
     }
 };
 
-const verifySmsTwilio = async(phone, code) => {
-    console.log(phone);
-    console.log(code);
+const verifySmsTwilio = async(phone, code) => {;
     try {
         const verification = await client.verify.v2
         .services(process.env.VERIFYSID)
