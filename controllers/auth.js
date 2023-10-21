@@ -24,7 +24,7 @@ const register = async(req, res) => {
         res.status(201).send(data);
 
      } catch (error) {
-        handleHttpError(res, {msg:'ERROR_REGISTER_USER', ok: false, error}, 400);
+        handleHttpError(res, {msg:error, ok: false, }, 400);
      }
 };
 
